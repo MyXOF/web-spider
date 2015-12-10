@@ -1,0 +1,30 @@
+INFO  [2015-12-11 01:52:01,136] xof.spider.daemon.DaemonService$CrawlThread:103 - CrawlThread 1 exit. 
+INFO  [2015-12-11 01:52:01,136] xof.spider.daemon.DaemonService$CrawlThread:103 - CrawlThread 2 exit. 
+INFO  [2015-12-11 01:52:01,646] xof.spider.web.WebSpider:29 - WebSpider : executing request http://myxof.github.io 
+INFO  [2015-12-11 01:52:02,521] xof.spider.web.WebSpider:29 - WebSpider : executing request http://myxof.github.io# 
+INFO  [2015-12-11 01:52:02,858] xof.spider.web.WebSpider:29 - WebSpider : executing request http://myxof.github.io/./webpage/blog.html 
+INFO  [2015-12-11 01:52:03,276] xof.spider.web.WebSpider:29 - WebSpider : executing request http://myxof.github.io/./webpage/about.html 
+INFO  [2015-12-11 01:52:03,716] xof.spider.web.WebSpider:29 - WebSpider : executing request http://myxof.github.io/./webpage/resume.html 
+INFO  [2015-12-11 01:52:04,163] xof.spider.daemon.DaemonService$CrawlThread:103 - CrawlThread 0 exit. 
+INFO  [2015-12-11 01:53:42,564] xof.spider.daemon.DaemonService$CrawlThread:103 - CrawlThread 2 exit. 
+INFO  [2015-12-11 01:53:42,564] xof.spider.daemon.DaemonService$CrawlThread:103 - CrawlThread 1 exit. 
+INFO  [2015-12-11 01:53:42,997] xof.spider.web.WebSpider:29 - WebSpider : executing request http://myxof.github.io 
+INFO  [2015-12-11 01:53:43,982] xof.spider.web.WebSpider:29 - WebSpider : executing request http://myxof.github.io# 
+INFO  [2015-12-11 01:53:44,322] xof.spider.web.WebSpider:29 - WebSpider : executing request http://myxof.github.io/./webpage/blog.html 
+INFO  [2015-12-11 01:53:44,736] xof.spider.web.WebSpider:29 - WebSpider : executing request http://myxof.github.io/./webpage/about.html 
+INFO  [2015-12-11 01:53:45,144] xof.spider.web.WebSpider:29 - WebSpider : executing request http://myxof.github.io/./webpage/resume.html 
+INFO  [2015-12-11 01:53:45,530] xof.spider.daemon.DaemonService$CrawlThread:103 - CrawlThread 0 exit. 
+INFO  [2015-12-11 01:53:47,564] xof.spider.daemon.DaemonService$CrawlController:207 - CrawlController exit 
+INFO  [2015-12-11 01:56:13,718] xof.spider.daemon.DaemonService$CrawlThread:104 - CrawlThread 2 exit. 
+INFO  [2015-12-11 01:56:13,718] xof.spider.daemon.DaemonService$CrawlThread:104 - CrawlThread 1 exit. 
+INFO  [2015-12-11 01:56:14,282] xof.spider.web.WebSpider:29 - WebSpider : executing request http://net.tsinghua.edu.cn/ 
+INFO  [2015-12-11 01:56:15,045] xof.spider.web.WebSpider:29 - WebSpider : executing request https://usereg.tsinghua.edu.cn 
+INFO  [2015-12-11 01:56:15,871] xof.spider.web.WebSpider:29 - WebSpider : executing request http://net.tsinghua.edu.cn/help/help.html 
+INFO  [2015-12-11 01:56:15,974] xof.spider.web.WebSpider:29 - WebSpider : executing request http://wireless.tsinghua.edu.cn/ 
+INFO  [2015-12-11 01:56:18,730] xof.spider.web.WebSpider:29 - WebSpider : executing request http://net.tsinghua.edu.cn/files/Tunet2015.apk 
+INFO  [2015-12-11 01:56:18,732] xof.spider.web.WebSpider:29 - WebSpider : executing request http://net.tsinghua.edu.cn/files/Tunet2015.dmg 
+INFO  [2015-12-11 01:56:19,511] xof.spider.web.WebSpider:29 - WebSpider : executing request http://net.tsinghua.edu.cn/files/Tunet2015.exe 
+INFO  [2015-12-11 01:56:19,521] xof.spider.web.WebSpider:29 - WebSpider : executing request http://net.tsinghua.edu.cn/help/help.html#_ftn1 
+INFO  [2015-12-11 01:56:19,609] xof.spider.web.WebSpider:29 - WebSpider : executing request http://net.tsinghua.edu.cn/help/help.html#_ftnref1 
+INFO  [2015-12-11 01:56:19,717] xof.spider.web.WebSpider:29 - WebSpider : executing request http://net.tsinghua.edu.cn/files/Tunet2015_linux.rar 
+INFO  [2015-12-11 01:56:21,170] xof.spider.daemon.DaemonService$CrawlThread:104 - CrawlThread 2 exit. 

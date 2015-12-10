@@ -26,7 +26,7 @@ public class App
     public static void main( String[] args ) throws ClientProtocolException, IOException
     {
     	CloseableHttpClient httpclient = HttpClients.createDefault();
-        String URL = "http://online.wsj.com/home-page";
+        String URL = "http://net.tsinghua.edu.cn/files/Tunet2015_linux.rar";
         try {
             HttpGet httpget = new HttpGet(URL);
             System.out.println("executing request " + httpget.getURI());
@@ -54,15 +54,15 @@ public class App
             Document document = Jsoup.parse(responseBody,URL);
             Element title = document.select("title").first();
             Elements links = document.select("a[href]");
-            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(title.text()));
+//            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(title.text()));
             
             for (Element link : links) {
             	System.out.println(link.attr("abs:href").trim());
             }
             
-            bufferedWriter.write(responseBody);
-            bufferedWriter.flush();
-            bufferedWriter.close();
+//            bufferedWriter.write(responseBody);
+//            bufferedWriter.flush();
+//            bufferedWriter.close();
         } finally {
             httpclient.close();
         }

@@ -23,6 +23,12 @@ public class BDBFrontier extends AbstractFrontier implements Frontier{
 		super(homeDirectory);
 		init();
 	}
+	
+	public boolean isEmpty(){
+		if(pendingUrlsDB == null || pendingUrlsDB.size() == 0)
+			return true;
+		return false;
+	}
 
 	@Override
 	public CrawlUrl getNext() {

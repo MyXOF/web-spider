@@ -26,7 +26,7 @@ public class WebSpider {
     	CloseableHttpClient httpclient = HttpClients.createDefault();
         try {
             HttpGet httpget = new HttpGet(URL);
-            logger.debug("WebSpider : executing request {}",httpget.getURI());
+            logger.info("WebSpider : executing request {}",httpget.getURI());
  
             ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
  

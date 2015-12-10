@@ -7,13 +7,11 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import xof.spider.filter.UrlFilter;
 
 public class HtmlParser {
-	private final static Logger logger = LoggerFactory.getLogger(HtmlParser.class);
+//	private final static Logger logger = LoggerFactory.getLogger(HtmlParser.class);
 //	private String URL;
 //	private String htmlContent;
 	private Document document;

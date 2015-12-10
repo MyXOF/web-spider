@@ -30,6 +30,7 @@ public class DaemonService {
 	private SimpleBloomFilter filter;
 	private String fileDirectory;
 	private boolean isDebug;
+	private boolean threadState[];
 	
 	public DaemonService(boolean isDebug){
 		this.isDebug = isDebug;
@@ -42,6 +43,11 @@ public class DaemonService {
 		fileDirectory = config.FILE_DIR;
 		executor = Executors.newFixedThreadPool(threadNum+1);
 	
+		threadState = new boolean[threadNum];
+		for(int i = 0;i < threadNum;i++){
+			threadState[i] = false;
+		}
+		
 		try {
 			bdbFrontier = new BDBFrontier(config.DB_DIR);
 			String[] Urls = config.URL.trim().split(",");
@@ -63,12 +69,17 @@ public class DaemonService {
 	
 	public void service(){
 		for(int i = 0;i < threadNum;i++){
+			threadState[i] = true;
 			executor.execute(new CrawlThread(i));
 		}		
 		executor.execute(new CrawlController());
 	}
 	
-
+	public void shutdown() throws DatabaseException{
+		executor.shutdown();
+		bdbFrontier.close();
+		logger.info("DaemonService shutdown.");
+	}
 	
 	class CrawlThread implements Runnable{
 		private int threadID;
@@ -78,26 +89,25 @@ public class DaemonService {
 		}
 		
 		@Override
-		public void run() {		
-			while(true){
-
-				Pair<String, Boolean> result = getNextCrawlUrl();
-				if(result.right){
-					try {
-						Thread.sleep(1000);
-						continue;
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+		public void run() {			
+			try {
+				while(true){
+					Pair<String, Boolean> result = getNextCrawlUrl();
+					if(result.right){
+						break;
 					}
+					if(result.left == null){
+						continue;
+					}
+					handleWeb(result.left);
 				}
-				if(result.left == null){
-					continue;
-				}
-				handleWeb(result.left);
+				logger.info("CrawlThread {} exit.",threadID);
+			} catch (Exception e) {
+				logger.error("CrawlThread {} errord occur at runtime",threadID);
+			} finally{
+				threadState[threadID] = false;
 			}
 		}
-		
 		
 		private Pair<String, Boolean> getNextCrawlUrl(){
 			CrawlUrl crawl = null;
@@ -117,8 +127,6 @@ public class DaemonService {
 				}
 			}
 			return new Pair<String, Boolean>(URL, false);
-			
-			
 		}
 		
 		private void handleWeb(String URL){
@@ -127,17 +135,23 @@ public class DaemonService {
 			try {
 				content = spider.getWebContent();
 			} catch (ClientProtocolException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.error("CrawlThread {} errors occur for {}",threadID,URL,e);
+				return;
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				logger.error("CrawlThread {} errors occur for {}",threadID,URL,e);
+				return;
+			}catch (Exception e) {
+				logger.error("CrawlThread {} errors occur for {}",threadID,URL,e);
+				return;
 			}
+			
 			HtmlParser parser = new HtmlParser(URL, content);
 			Set<String> nextUrls = parser.getNextURLs();
 			String title = parser.getTitle();
+			if(title != null){
+				saveHtmlFile(title, fileDirectory,content,URL);
+			}
 			
-			saveHtmlFile(title, fileDirectory,content,URL);
 			updateUrls(nextUrls);
 		}
 		
@@ -166,15 +180,46 @@ public class DaemonService {
 
 		@Override
 		public void run() {
-			// TODO Auto-generated method stub
-			
+			while(true){
+				boolean state = false;
+				for(int i = 0;i < threadNum;i++){
+					state |= threadState[i];
+					if(threadState[i]){
+						continue;
+					}
+					boolean isEmpty = false;
+					synchronized (bdbFrontier) {
+						isEmpty = bdbFrontier.isEmpty();
+					}
+					if(!isEmpty){
+						threadState[i] = true;
+						state |= threadState[i];
+						executor.execute(new CrawlThread(i));
+					}	
+				}
+				if(!state){
+					break;
+				}
+				try {
+					Thread.sleep(5000);
+				} catch (InterruptedException e) {
+					logger.error("CrawlController failed to sleep",e);
+				}
+			}
+			try {
+				shutdown();
+			} catch (DatabaseException e) {
+				logger.error("CrawlController failed to close daemon thread",e);
+			}
+			logger.info("CrawlController exit");
 		}
 		
 	}
 	
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
+		DaemonService daemon = new DaemonService(true);
+		if(!daemon.init()) return;
+		daemon.service();
 	}
 
 }
