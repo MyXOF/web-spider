@@ -40,7 +40,7 @@ public class WebSpider {
                     }
                 }
             };
-            String responseBody = httpclient.execute(httpget, responseHandler);
+            String responseBody = new String(httpclient.execute(httpget, responseHandler).getBytes("UTF-8"));
             return responseBody;
         } finally {
             httpclient.close();

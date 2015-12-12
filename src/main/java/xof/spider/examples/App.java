@@ -26,7 +26,7 @@ public class App
     public static void main( String[] args ) throws ClientProtocolException, IOException
     {
     	CloseableHttpClient httpclient = HttpClients.createDefault();
-        String URL = "http://net.tsinghua.edu.cn/files/Tunet2015_linux.rar";
+        String URL = "http://www.163.com";
         try {
             HttpGet httpget = new HttpGet(URL);
             System.out.println("executing request " + httpget.getURI());
@@ -44,21 +44,21 @@ public class App
                     }
                 }
             };
-            String responseBody = httpclient.execute(httpget, responseHandler);
+            String responseBody = new String(httpclient.execute(httpget, responseHandler).getBytes("UTF-8"));
 
             //print the content of the page
-//            System.out.println("----------------------------------------");
-//            System.out.println(responseBody);
-//            System.out.println("----------------------------------------");
+            System.out.println("----------------------------------------");
+            System.out.println(responseBody);
+            System.out.println("----------------------------------------");
             
-            Document document = Jsoup.parse(responseBody,URL);
-            Element title = document.select("title").first();
-            Elements links = document.select("a[href]");
+//            Document document = Jsoup.parse(responseBody,URL);
+//            Element title = document.select("title").first();
+//            Elements links = document.select("a[href]");
 //            BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(title.text()));
             
-            for (Element link : links) {
-            	System.out.println(link.attr("abs:href").trim());
-            }
+//            for (Element link : links) {
+//            	System.out.println(link.attr("abs:href").trim());
+//            }
             
 //            bufferedWriter.write(responseBody);
 //            bufferedWriter.flush();

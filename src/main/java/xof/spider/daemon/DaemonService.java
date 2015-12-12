@@ -15,7 +15,6 @@ import com.sleepycat.je.DatabaseException;
 
 import xof.spider.configuration.SpiderConfig;
 import xof.spider.database.BDBFrontier;
-import xof.spider.filter.SimpleBloomFilter;
 import xof.spider.parser.HtmlParser;
 import xof.spider.url.CrawlUrl;
 import xof.spider.utils.Pair;
@@ -25,9 +24,9 @@ public class DaemonService {
 	private final static Logger logger = LoggerFactory.getLogger(DaemonService.class);
 	
 	private ExecutorService executor;
-	private BDBFrontier bdbFrontier;
+	private BDBFrontier webToVisit;
+	private BDBFrontier webVisited;
 	private int threadNum;
-	private SimpleBloomFilter filter;
 	private String fileDirectory;
 	private boolean isDebug;
 	private boolean threadState[];
@@ -49,21 +48,20 @@ public class DaemonService {
 		}
 		
 		try {
-			bdbFrontier = new BDBFrontier(config.DB_DIR);
+			webToVisit = new BDBFrontier(config.DB_WEB_TO_VISIT);
+			webVisited = new BDBFrontier(config.DB_WEB_VISITED);
 			String[] Urls = config.URL.trim().split(",");
 			if(Urls == null || Urls.length == 0){
 				logger.warn("DaemonService: there is no url to start");
+				return false;
 			}
 			for(String url : Urls){
-				bdbFrontier.putUrl(new CrawlUrl(url));
+				webToVisit.putUrl(new CrawlUrl(url));
 			}
 		} catch (DatabaseException e) {
 			logger.error("DaemonService: failed to init database",e);
 			return false;
-		}
-		
-		filter = new SimpleBloomFilter();
-		
+		}		
 		return true;
 	}
 	
@@ -77,7 +75,7 @@ public class DaemonService {
 	
 	public void shutdown() throws DatabaseException{
 		executor.shutdown();
-		bdbFrontier.close();
+		webToVisit.close();
 		logger.info("DaemonService shutdown.");
 	}
 	
@@ -91,7 +89,7 @@ public class DaemonService {
 		@Override
 		public void run() {			
 			try {
-				while(true){
+				while(threadState[threadID]){
 					Pair<String, Boolean> result = getNextCrawlUrl();
 					if(result.right){
 						break;
@@ -111,22 +109,24 @@ public class DaemonService {
 		
 		private Pair<String, Boolean> getNextCrawlUrl(){
 			CrawlUrl crawl = null;
-			synchronized (bdbFrontier) {
-				crawl = bdbFrontier.getNext();
+			synchronized (webToVisit) {
+				crawl = webToVisit.getNext();
 			}
 			if(crawl == null){
 				return new Pair<String, Boolean>(null,true);
 			}
 			String URL = crawl.getOriUrl();
-			synchronized (filter) {
-				if(!filter.contains(URL)){
-					filter.add(URL);
+
+			synchronized (webVisited) {
+				if(webVisited.get(URL) == null){
+					webVisited.put(URL, crawl);
+					return new Pair<String, Boolean>(URL, false);
 				}
 				else{
 					return new Pair<String, Boolean>(null, false);
 				}
 			}
-			return new Pair<String, Boolean>(URL, false);
+
 		}
 		
 		private void handleWeb(String URL){
@@ -158,7 +158,7 @@ public class DaemonService {
 		private void saveHtmlFile(String fileName,String fileDirectory,String content,String URL){
 			if(isDebug) return;
 			try {
-				BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(String.format("%s/%s", fileDirectory,fileName)));
+				BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(String.format("%s/%s.html", fileDirectory,fileName)));
 				bufferedWriter.write(content);
 				bufferedWriter.flush();
 				bufferedWriter.close();
@@ -171,7 +171,7 @@ public class DaemonService {
 		private void updateUrls(Set<String> urls){
 			if(urls == null) return;
 			for(String url : urls){
-				bdbFrontier.putUrl(new CrawlUrl(url));
+				webToVisit.putUrl(new CrawlUrl(url));
 			}
 		}
 	}
@@ -188,8 +188,8 @@ public class DaemonService {
 						continue;
 					}
 					boolean isEmpty = false;
-					synchronized (bdbFrontier) {
-						isEmpty = bdbFrontier.isEmpty();
+					synchronized (webToVisit) {
+						isEmpty = webToVisit.isEmpty();
 					}
 					if(!isEmpty){
 						threadState[i] = true;
@@ -217,7 +217,7 @@ public class DaemonService {
 	}
 	
 	public static void main(String[] args) {
-		DaemonService daemon = new DaemonService(true);
+		DaemonService daemon = new DaemonService(false);
 		if(!daemon.init()) return;
 		daemon.service();
 	}

@@ -13,7 +13,8 @@ public class SpiderConfig {
 	private static SpiderConfig config = new SpiderConfig();	
 	public String URL;
 	public String FILE_DIR;
-	public String DB_DIR;
+	public String DB_WEB_TO_VISIT;
+	public String DB_WEB_VISITED;
 	public int THREAD_NUM;
 	
 	public static SpiderConfig getInstance(){
@@ -31,7 +32,8 @@ public class SpiderConfig {
 			THREAD_NUM = Integer.parseInt(prop.getProperty("thread_num"));
 			URL = prop.getProperty("url");
 			FILE_DIR = prop.getProperty("file_dir");
-			DB_DIR = prop.getProperty("db_dir");
+			DB_WEB_TO_VISIT = prop.getProperty("db_web_to_visit");
+			DB_WEB_VISITED = prop.getProperty("db_web_visited");
 			in.close();
 		} catch (Exception e) {
 			logger.error("SpiderConfig: errors occur when reading config file from {}",CONFIG_FILE,e);

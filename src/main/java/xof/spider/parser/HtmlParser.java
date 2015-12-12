@@ -7,18 +7,17 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import xof.spider.filter.UrlFilter;
 
 public class HtmlParser {
-//	private final static Logger logger = LoggerFactory.getLogger(HtmlParser.class);
-//	private String URL;
-//	private String htmlContent;
+	private final static Logger logger = LoggerFactory.getLogger(HtmlParser.class);
 	private Document document;
 	
 	public HtmlParser(String URL,String htmlContent){
-//		this.URL = URL;
-//		this.htmlContent = htmlContent;
+
 		document = Jsoup.parse(htmlContent,URL);
 	}
 	
@@ -36,7 +35,15 @@ public class HtmlParser {
         for(Element link : links){
         	String url = link.attr("abs:href").trim();
         	if(UrlFilter.isLegal(url)){
+        		while(true){
+        			if(url.endsWith("/") || url.endsWith("#")){
+        				url = url.substring(0, url.length()-1);
+        				continue;
+        			}
+        			break;
+        		}
         		result.add(url);
+        		logger.debug("HtmlParser : get next url {}",url);
         	}
         }    
         return result;

@@ -52,7 +52,7 @@ public abstract class AbstractFrontier {
 		env.close();
 	}
 	
-	protected abstract void put(Object key,Object value);	
-	protected abstract Object get(Object key);
-	protected abstract Object delete(Object key);
+	public abstract void put(Object key,Object value);	
+	public abstract Object get(Object key);
+	public abstract Object delete(Object key);
 }

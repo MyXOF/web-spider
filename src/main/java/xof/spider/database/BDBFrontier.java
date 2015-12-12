@@ -51,13 +51,13 @@ public class BDBFrontier extends AbstractFrontier implements Frontier{
 	}
 
 	@Override
-	protected void put(Object key, Object value) {
+	public void put(Object key, Object value) {
 		if(pendingUrlsDB == null) init();
 		pendingUrlsDB.put(key, value);
 	}
 
 	@Override
-	protected Object get(Object key) {
+	public Object get(Object key) {
 		if(pendingUrlsDB == null){
 			init();
 			return null;
@@ -66,7 +66,7 @@ public class BDBFrontier extends AbstractFrontier implements Frontier{
 	}
 
 	@Override
-	protected Object delete(Object key) {
+	public Object delete(Object key) {
 		if(pendingUrlsDB == null){
 			init();
 			return null;
