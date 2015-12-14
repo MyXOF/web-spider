@@ -1,4 +1,4 @@
-package xof.spider.database;
+package xof.spider.database.berkeleydb;
 
 
 import java.util.Map.Entry;

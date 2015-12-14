@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import com.sleepycat.je.DatabaseException;
 
-import xof.spider.database.BDBFrontier;
+import xof.spider.database.berkeleydb.BDBFrontier;
 import xof.spider.url.CrawlUrl;
 
 public class DBTest {

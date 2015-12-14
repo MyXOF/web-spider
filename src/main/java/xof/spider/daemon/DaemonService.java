@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import com.sleepycat.je.DatabaseException;
 
 import xof.spider.configuration.SpiderConfig;
-import xof.spider.database.BDBFrontier;
+import xof.spider.database.berkeleydb.BDBFrontier;
 import xof.spider.parser.HtmlParser;
 import xof.spider.url.CrawlUrl;
 import xof.spider.utils.Pair;
