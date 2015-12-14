@@ -4,5 +4,7 @@ web_visited/*
 data/*
 .classpath
 *.html
+*.xml
+*.properties
 
 /target/
