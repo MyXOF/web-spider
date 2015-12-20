@@ -11,14 +11,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import xof.spider.configuration.SpiderConfig;
-import xof.spider.utils.Gzip;
 
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Host;
 import com.datastax.driver.core.KeyspaceMetadata;
 import com.datastax.driver.core.Metadata;
 import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
 import com.datastax.driver.core.TableMetadata;
@@ -41,13 +39,25 @@ public class CassandraCluster {
 	// one session for per ks
 	public Session session;
 	
-	private static String createKsCql = "CREATE KEYSPACE IF NOT EXISTS %s WITH replication = {'class':'%s', 'replication_factor':%d};";
-	private static String createHotCfCql = "CREATE TABLE IF NOT EXISTS %s.%s (" 
-											+ "document blob," + "weight double,"
-											+ "PRIMARY KEY(document)" + ");";
-	private static String createCfCql = "CREATE TABLE IF NOT EXISTS %s.%s (" 
-											+ "document blob," + "weight double," 
-											+ "PRIMARY KEY(document)" + ");";
+	private static final  String createKsCql = "CREATE KEYSPACE IF NOT EXISTS %s WITH replication = {'class':'%s', 'replication_factor':%d};";
+	
+//	private static final String createHotCfCql = "CREATE TABLE IF NOT EXISTS %s.%s (" 
+//											+ "document blob," + "weight double,"
+//											+ "PRIMARY KEY(document)" + ");";
+	
+	private static final String createWordCfCql = "CREATE TABLE IF NOT EXISTS %s.%s (" 
+											+ "DocID int," + "Weight double,"  + "Line int,"
+											+ "PRIMARY KEY(DocID)" + ");";
+	
+	private static final String createDocCFCql = "CREATE TABLE IF NOT EXISTS %s.%s ("
+											+ "DocID int," + "File blob," + "Title blob,"
+											+ "PRIMARY KEY(DocID)" + ");";
+	
+	private static final String DOC_CF = "doc_document";
+		
+	private static final String createSentenceCFCql = "CREATE TABLE IF NOT EXISTS %s.%s (" 
+											+ "Line int," + "Content blob,"
+											+ "PRIMARY KEY(Line)" + ");";
 	
 //	private static String insertCql = "insert into %s.%s(document,weight) values('%s',%f);";
 	private static String selectCql = "select * from %s.%s";
@@ -116,23 +126,57 @@ public class CassandraCluster {
 		}
 	}
 	
-	public void createCf(String ks, String cf) {
+	public void createWordCf(String ks,String cf){
 		try {
-			session.execute(String.format(createCfCql, ks, cf));
-		}
-		catch (Exception e) {
-			logger.error("CassandraCluster : fail to create cf {} from keyspace {}",cf,ks,e);
+			session.execute(String.format(createWordCfCql, ks,"w_"+cf));
+		} catch (Exception e) {
+			logger.error("CassandraCluster : fail to create cf w_{} from keyspace {}",cf,ks,e);
 		}
 	}
 	
-	public void createHotCf(String ks, String cf) {
+	public void createDocCf(String ks) {
 		try {
-			session.execute(String.format(createHotCfCql, ks, cf));
+			session.execute(String.format(createDocCFCql, ks, DOC_CF));
 		}
 		catch (Exception e) {
-			logger.error("CassandraCluster : fail to create hot cf {} from keyspace {}",cf,ks,e);
+			logger.error("CassandraCluster : fail to create cf {} from keyspace {}",DOC_CF,ks,e);
 		}
 	}
+	
+	public void createSentenceCf(String ks,String cf){
+		try {
+			session.execute(String.format(createSentenceCFCql, ks,"s_"+cf));
+		} catch (Exception e) {
+			logger.error("CassandraCluster : fail to create cf s_{} from keyspace {}",cf,ks,e);
+		}
+	}
+	
+	public ResultSet InsertWord(String ks,String cf,int docID,double weight,int line){
+		Statement statement = QueryBuilder.insertInto(ks, "w_"+cf).value("DocID", docID).value("Weight", weight).value("Line", line);
+		ResultSet rSet = session.execute(statement);
+		return rSet;
+	}
+	
+	public ResultSet InsertDoc(String ks,int docID,ByteBuffer file,ByteBuffer title){
+		Statement statement = QueryBuilder.insertInto(ks,DOC_CF).value("DocID", docID).value("File", file).value("Title", title);
+		ResultSet rSet = session.execute(statement);
+		return rSet;
+	}
+	
+	public ResultSet InsertSentence(String ks,String cf,int line,ByteBuffer content){
+		Statement statement = QueryBuilder.insertInto(ks, "s_"+cf).value("Line", line).value("Content", content);
+		ResultSet rSet = session.execute(statement);
+		return rSet;
+	}
+	
+//	public void createHotCf(String ks, String cf) {
+//		try {
+//			session.execute(String.format(createHotCfCql, ks, cf));
+//		}
+//		catch (Exception e) {
+//			logger.error("CassandraCluster : fail to create hot cf {} from keyspace {}",cf,ks,e);
+//		}
+//	}
 	
 	public ResultSet insert(String ks, String cf, ByteBuffer com, Double weight) {
 		Statement statement = QueryBuilder.insertInto(ks, cf).value("document", com).value("weight", weight);
@@ -203,12 +247,12 @@ public class CassandraCluster {
 	}
 	
 	public static void main(String[] args) throws IOException {
-		CassandraCluster test = CassandraCluster.getInstance();
-		if(test.checkKs("test")){
-			System.out.println("test created");
-		}
-		
-		String name = "wikipedia_dada-_da4efds32234sf/tads.html";
+//		CassandraCluster test = CassandraCluster.getInstance();
+//		if(test.checkKs("test")){
+//			System.out.println("test created");
+//		}
+//		
+//		String name = "wikipedia_dada-_da4efds32234sf/tads.html";
 //		double weight = 0.0312313;
 //		
 //		Double[] weights = new Double[10];
@@ -219,21 +263,21 @@ public class CassandraCluster {
 //			documents[i] = ByteBuffer.wrap(Gzip.compress(name+i));
 //		}
 		
-		if(!test.checkCf("test", "doge")){
-			test.createCf("test", "doge");
-		}
+//		if(!test.checkCf("test", "doge")){
+//			test.createCf("test", "doge");
+//		}
 //		test.batchInsert("test1", "doge", documents, weights);
 		
-		byte[] com = Gzip.compress(name);
-		test.insert("test", "doge", ByteBuffer.wrap(com), 0.003012311);
-		
-		ResultSet result = test.select("test", "doge");
-		
-		for(Row row : result.all()){
-			String document = Gzip.decompress(row.getBytes(0).array());
-			System.out.println("document name: "+document+" weight: "+row.getDouble(1));
-		}
-		
-		test.close();
+//		byte[] com = Gzip.compress(name);
+//		test.insert("test", "doge", ByteBuffer.wrap(com), 0.003012311);
+//		
+//		ResultSet result = test.select("test", "doge");
+//		
+//		for(Row row : result.all()){
+//			String document = Gzip.decompress(row.getBytes(0).array());
+//			System.out.println("document name: "+document+" weight: "+row.getDouble(1));
+//		}
+//		
+//		test.close();
 	}
 }
