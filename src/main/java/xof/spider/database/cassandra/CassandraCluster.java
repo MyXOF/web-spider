@@ -10,16 +10,14 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import xof.spider.configuration.SpiderConfig;
 import xof.spider.utils.Gzip;
 
-import com.datastax.driver.core.BoundStatement;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.Host;
 import com.datastax.driver.core.KeyspaceMetadata;
 import com.datastax.driver.core.Metadata;
-import com.datastax.driver.core.PreparedStatement;
 import com.datastax.driver.core.ResultSet;
-import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.Statement;
@@ -27,7 +25,7 @@ import com.datastax.driver.core.TableMetadata;
 import com.datastax.driver.core.querybuilder.QueryBuilder;
 
 public class CassandraCluster {
-	static Logger logger = LoggerFactory.getLogger(CassandraCluster.class);
+	private static Logger logger = LoggerFactory.getLogger(CassandraCluster.class);
 		
 	public static CassandraCluster getInstance() {
 		if (myCluster == null)
@@ -44,17 +42,22 @@ public class CassandraCluster {
 	public Session session;
 	
 	private static String createKsCql = "CREATE KEYSPACE IF NOT EXISTS %s WITH replication = {'class':'%s', 'replication_factor':%d};";
-	private static String createHotCfCql = "CREATE TABLE IF NOT EXISTS %s.%s (" + "document blob," + "weight double," + "PRIMARY KEY(document)" + ");";
-	private static String createCfCql = "CREATE TABLE IF NOT EXISTS %s.%s (" + "document blob," + "weight double," + "PRIMARY KEY(document)" + ");";
+	private static String createHotCfCql = "CREATE TABLE IF NOT EXISTS %s.%s (" 
+											+ "document blob," + "weight double,"
+											+ "PRIMARY KEY(document)" + ");";
+	private static String createCfCql = "CREATE TABLE IF NOT EXISTS %s.%s (" 
+											+ "document blob," + "weight double," 
+											+ "PRIMARY KEY(document)" + ");";
 	
-	private static String insertCql = "insert into %s.%s(document,weight) values('%s',%f);";
+//	private static String insertCql = "insert into %s.%s(document,weight) values('%s',%f);";
 	private static String selectCql = "select * from %s.%s";
 	private static String selectCountCql = "select count(*) from %s.%s";
 	
 	private CassandraCluster() {
-		nodes = StorageConfig.cassandra_nodes.split(",");
+		SpiderConfig config = SpiderConfig.getInstance();
+		nodes = config.cassandra_nodes.split(",");
 		connect(nodes);
-		createKs(StorageConfig.cassandra_keyspace, StorageConfig.cassandra_partition_strategy, StorageConfig.cassandra_replica_factor);
+		createKs(config.cassandra_keyspace, config.cassandra_partition_strategy, config.cassandra_replica_factor);
 	}
 	
 	public Session getSession() {
@@ -201,8 +204,8 @@ public class CassandraCluster {
 	
 	public static void main(String[] args) throws IOException {
 		CassandraCluster test = CassandraCluster.getInstance();
-		if(test.checkKs("test1")){
-			System.out.println("test1 created");
+		if(test.checkKs("test")){
+			System.out.println("test created");
 		}
 		
 		String name = "wikipedia_dada-_da4efds32234sf/tads.html";
@@ -216,15 +219,15 @@ public class CassandraCluster {
 //			documents[i] = ByteBuffer.wrap(Gzip.compress(name+i));
 //		}
 		
-		if(!test.checkCf("test1", "doge")){
-			test.createCf("test1", "doge");
+		if(!test.checkCf("test", "doge")){
+			test.createCf("test", "doge");
 		}
 //		test.batchInsert("test1", "doge", documents, weights);
 		
 		byte[] com = Gzip.compress(name);
-		test.insert("test1", "doge", ByteBuffer.wrap(com), 0.003012311);
+		test.insert("test", "doge", ByteBuffer.wrap(com), 0.003012311);
 		
-		ResultSet result = test.select("test1", "doge");
+		ResultSet result = test.select("test", "doge");
 		
 		for(Row row : result.all()){
 			String document = Gzip.decompress(row.getBytes(0).array());
