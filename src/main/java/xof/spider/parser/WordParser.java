@@ -1,6 +1,5 @@
 package xof.spider.parser;
 
-import java.awt.Image;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
