@@ -7,10 +7,6 @@ import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,15 +89,17 @@ public class ParseFileUtils {
 		}
 	}
 	
+	@SuppressWarnings("resource")
 	private void dumpFile(File[] files,String destDirectory) throws IOException{
 		for(File file : files){
 			String path = String.format("%s/%s", destDirectory,file.getName());
 			File dest = new File(path);
 			if(!dest.exists()){
 				dest.createNewFile();
+				logger.debug("create new file {}",file.getName());
 			}
-	        FileChannel in = new FileInputStream( file ).getChannel();
-	        FileChannel out = new FileOutputStream(dest ).getChannel();
+	        FileChannel in = new FileInputStream(file).getChannel();
+	        FileChannel out = new FileOutputStream(dest).getChannel();
 	        out.transferFrom( in, 0, in.size() );
 		}
 	}

@@ -46,14 +46,14 @@ public class CassandraCluster {
 //											+ "PRIMARY KEY(document)" + ");";
 	
 	private static final String createWordCfCql = "CREATE TABLE IF NOT EXISTS %s.%s (" 
-											+ "DocID int," + "Weight double,"  + "Line int,"
+											+ "DocID int," + "Weight double,"  + "Line int," + "File blob," + "Title blob,"
 											+ "PRIMARY KEY(DocID)" + ");";
 	
-	private static final String createDocCFCql = "CREATE TABLE IF NOT EXISTS %s.%s ("
-											+ "DocID int," + "File blob," + "Title blob,"
-											+ "PRIMARY KEY(DocID)" + ");";
+//	private static final String createDocCFCql = "CREATE TABLE IF NOT EXISTS %s.%s ("
+//											+ "DocID int," + "File blob," + "Title blob,"
+//											+ "PRIMARY KEY(DocID)" + ");";
 	
-	private static final String DOC_CF = "doc_document";
+//	private static final String DOC_CF = "doc_document";
 		
 	private static final String createSentenceCFCql = "CREATE TABLE IF NOT EXISTS %s.%s (" 
 											+ "Line int," + "Content blob,"
@@ -67,7 +67,8 @@ public class CassandraCluster {
 		SpiderConfig config = SpiderConfig.getInstance();
 		nodes = config.cassandra_nodes.split(",");
 		connect(nodes);
-		createKs(config.cassandra_keyspace, config.cassandra_partition_strategy, config.cassandra_replica_factor);
+		createKs(config.cassandra_keyspace_word, config.cassandra_partition_strategy, config.cassandra_replica_factor);
+		createKs(config.cassandra_keyspace_sentence, config.cassandra_partition_strategy, config.cassandra_replica_factor);
 	}
 	
 	public Session getSession() {
@@ -128,43 +129,43 @@ public class CassandraCluster {
 	
 	public void createWordCf(String ks,String cf){
 		try {
-			session.execute(String.format(createWordCfCql, ks,"w_"+cf));
+			session.execute(String.format(createWordCfCql, ks,cf));
 		} catch (Exception e) {
-			logger.error("CassandraCluster : fail to create cf w_{} from keyspace {}",cf,ks,e);
+			logger.error("CassandraCluster : fail to create cf {} from keyspace {}",cf,ks,e);
 		}
 	}
 	
-	public void createDocCf(String ks) {
-		try {
-			session.execute(String.format(createDocCFCql, ks, DOC_CF));
-		}
-		catch (Exception e) {
-			logger.error("CassandraCluster : fail to create cf {} from keyspace {}",DOC_CF,ks,e);
-		}
-	}
+//	public void createDocCf(String ks) {
+//		try {
+//			session.execute(String.format(createDocCFCql, ks, DOC_CF));
+//		}
+//		catch (Exception e) {
+//			logger.error("CassandraCluster : fail to create cf {} from keyspace {}",DOC_CF,ks,e);
+//		}
+//	}
 	
 	public void createSentenceCf(String ks,String cf){
 		try {
-			session.execute(String.format(createSentenceCFCql, ks,"s_"+cf));
+			session.execute(String.format(createSentenceCFCql, ks,cf));
 		} catch (Exception e) {
-			logger.error("CassandraCluster : fail to create cf s_{} from keyspace {}",cf,ks,e);
+			logger.error("CassandraCluster : fail to create cf {} from keyspace {}",cf,ks,e);
 		}
 	}
 	
-	public ResultSet InsertWord(String ks,String cf,int docID,double weight,int line){
-		Statement statement = QueryBuilder.insertInto(ks, "w_"+cf).value("DocID", docID).value("Weight", weight).value("Line", line);
+	public ResultSet InsertWord(String ks,String cf,int docID,double weight,int line,ByteBuffer file,ByteBuffer title){
+		Statement statement = QueryBuilder.insertInto(ks, cf).value("DocID", docID).value("Weight", weight).value("Line", line).value("File", file).value("Title", title);
 		ResultSet rSet = session.execute(statement);
 		return rSet;
 	}
 	
-	public ResultSet InsertDoc(String ks,int docID,ByteBuffer file,ByteBuffer title){
-		Statement statement = QueryBuilder.insertInto(ks,DOC_CF).value("DocID", docID).value("File", file).value("Title", title);
-		ResultSet rSet = session.execute(statement);
-		return rSet;
-	}
+//	public ResultSet InsertDoc(String ks,int docID,ByteBuffer file,ByteBuffer title){
+//		Statement statement = QueryBuilder.insertInto(ks,DOC_CF).value("DocID", docID).value("File", file).value("Title", title);
+//		ResultSet rSet = session.execute(statement);
+//		return rSet;
+//	}
 	
 	public ResultSet InsertSentence(String ks,String cf,int line,ByteBuffer content){
-		Statement statement = QueryBuilder.insertInto(ks, "s_"+cf).value("Line", line).value("Content", content);
+		Statement statement = QueryBuilder.insertInto(ks, cf).value("Line", line).value("Content", content);
 		ResultSet rSet = session.execute(statement);
 		return rSet;
 	}
@@ -178,11 +179,11 @@ public class CassandraCluster {
 //		}
 //	}
 	
-	public ResultSet insert(String ks, String cf, ByteBuffer com, Double weight) {
-		Statement statement = QueryBuilder.insertInto(ks, cf).value("document", com).value("weight", weight);
-		ResultSet rSet = session.execute(statement);
-		return rSet;
-	}
+//	public ResultSet insert(String ks, String cf, ByteBuffer com, Double weight) {
+//		Statement statement = QueryBuilder.insertInto(ks, cf).value("document", com).value("weight", weight);
+//		ResultSet rSet = session.execute(statement);
+//		return rSet;
+//	}
 	
 //	public ResultSet batchInsert(String ks, String cf, ByteBuffer[] documents, Double[] weights) {
 //		String sql = "insert into "+ks+"."+cf+"(document,weight) values('%s',%f);";

@@ -6,4 +6,6 @@ was
 were
 to
 of
+from
 be
+not
