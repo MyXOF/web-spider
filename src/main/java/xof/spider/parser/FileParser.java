@@ -97,17 +97,19 @@ public class FileParser {
 			if(stopWords.contains(word)) continue;
 			wordList.add(word);
 		}
-		Map<String, Pair<Integer, Integer>> wordInfo = insertSentence(docID, wordList);
+		// 1st line
+		// 2nd count
+		Map<String, Pair<Integer, Double>> wordInfo = insertSentence(docID, wordList);
 		insertWord(wordInfo, docID,file,title);
 		return true;
 	}
 	
-	public Map<String, Pair<Integer, Integer>> insertSentence(int docID,List<String> words) throws IOException{
+	public Map<String, Pair<Integer, Double>> insertSentence(int docID,List<String> words) throws IOException{
 		if(!cluster.checkCf(config.cassandra_keyspace_sentence, "s_"+docID)){
 			cluster.createSentenceCf(config.cassandra_keyspace_sentence, "s_"+docID);
 			logger.info("cassnadra create sentence cd {}.{}",config.cassandra_keyspace_sentence, "s_"+docID);
 		}
-		Map<String, Pair<Integer, Integer>> wordInfo = new HashMap<String, Pair<Integer,Integer>>();
+		Map<String, Pair<Integer, Double>> wordInfo = new HashMap<String, Pair<Integer,Double>>();
 		int line = 1;
 		int len = words.size();
 		boolean flag = true;
@@ -127,7 +129,7 @@ public class FileParser {
 					wordInfo.get(word).right++;
 				}
 				else{
-					wordInfo.put(word, new Pair<Integer, Integer>(line, 1));
+					wordInfo.put(word, new Pair<Integer, Double>(line, 1.0));
 				}
 				count++;
 			}
@@ -141,10 +143,10 @@ public class FileParser {
 		return wordInfo;
 	}
 	
-	public void insertWord(Map<String, Pair<Integer, Integer>> wordInfo,int docID,ByteBuffer file,ByteBuffer title){
-		Iterator<Map.Entry<String, Pair<Integer, Integer>>> entries = wordInfo.entrySet().iterator();
+	public void insertWord(Map<String, Pair<Integer, Double>> wordInfo,int docID,ByteBuffer file,ByteBuffer title){
+		Iterator<Map.Entry<String, Pair<Integer, Double>>> entries = wordInfo.entrySet().iterator();
 		while (entries.hasNext()) {  
-			Map.Entry<String, Pair<Integer, Integer>> entry = entries.next(); 
+			Map.Entry<String, Pair<Integer, Double>> entry = entries.next(); 
 			String word = "w_"+entry.getKey();
 			if(!cluster.checkCf(config.cassandra_keyspace_word, word)){
 				cluster.createWordCf(config.cassandra_keyspace_word, word);
