@@ -4,10 +4,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -58,6 +60,32 @@ public class FileParser {
 		cluster.close();
 	}
 	
+	/*public HashMap<String, Double> tfSingle (List<String> wordList) {  
+    	//wordCount / wordTotal
+        HashMap<String, Double> tf = new HashMap<String, Double>();  
+        int wordNum = wordList.size();
+        int wordtf = 0;  
+        for (int i = 0; i < wordNum; i++) {
+            if(wordList.get(i) !=  " " && !tf.containsKey(wordList.get(i)))
+            	wordtf = Collections.frequency(wordList, wordList.get(i));
+            	tf.put(wordList.get(i), (new Double(wordtf + 1)) / wordNum); 
+        }
+        return tf;  
+    } 
+    
+    public HashMap<String, Integer> tfNormalSingle (List<String> wordList) {  
+    	//wordCount
+        HashMap<String, Integer> tf = new HashMap<String, Integer>();  
+        int wordNum = wordList.size();
+        int wordtf = 0;  
+        for (int i = 0; i < wordNum; i++) {
+            if(wordList.get(i) !=  " " && !tf.containsKey(wordList.get(i)))
+            	wordtf = Collections.frequency(wordList, wordList.get(i));
+            	tf.put(wordList.get(i), wordtf++); 
+        }
+        return tf;  
+    }*/
+	
 	public boolean parseFile(File input,int docID){
 		if(input == null){
 			logger.warn("WordParser : receive null file input");
@@ -88,7 +116,7 @@ public class FileParser {
 		return true;
 	}
 	
-	public boolean parseWord(String content,int docID,ByteBuffer file,ByteBuffer title) throws IOException{
+	public boolean parseWord(String content,int docID, ByteBuffer file,ByteBuffer title) throws IOException{
 		Matcher matcher = Pattern.compile("\\w+").matcher(content);
 		List<String> wordList = new ArrayList<String>();
 		Set<String> stopWords = config.stopWords;
@@ -140,6 +168,11 @@ public class FileParser {
 			logger.info("cassnandra insert into {}.{} line {}, content {}",config.cassandra_keyspace_sentence, "s_"+docID, line,builder.toString());
 			line++;
 		}
+		for(Entry<String, Pair<Integer, Double>> entry : wordInfo.entrySet()) {
+			Object word = entry.getKey();
+			Object valPair = entry.getValue();
+			wordInfo.get(valPair).right = wordInfo.get(valPair).right / len;
+		}
 		return wordInfo;
 	}
 	
@@ -166,7 +199,6 @@ public class FileParser {
 		FileParser test = new FileParser();
 		test.parseFile(new File("Halo~_The_Flood_6866.html"), 0);
 		test.parseFile(new File("Halo~_The_Fall_of_Reach_24f4.html"), 1);
-		
 		test.shutdown();
 	}
 
