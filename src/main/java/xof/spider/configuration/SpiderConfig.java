@@ -24,6 +24,8 @@ public class SpiderConfig {
 	public int SOURCE_DATA_DEEP;
 	public String SOURCE_DATA_FILTER_DIR;
 	public String PARSE_DATA_DIR;
+	// add by xinyi
+	public int DB_WEB_NUM;
 	
 	public String cassandra_nodes = "127.0.0.1";
 	public int sql_cassandra_port = 9042;
