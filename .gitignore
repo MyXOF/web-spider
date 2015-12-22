@@ -5,6 +5,5 @@ data/*
 .classpath
 *.html
 *.xml
-*.properties
 
 /target/
