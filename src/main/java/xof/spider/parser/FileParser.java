@@ -32,28 +32,41 @@ public class FileParser {
 	private CassandraCluster cluster;
 	private SpiderConfig config;
 	private final int SENTENCE_COUNT = 15;
+	private int docID = 0;
 	
-	public FileParser(){
+	public FileParser(int docID){
 		config = SpiderConfig.getInstance();
-		sourceDirectory = config.SOURCE_DATA_FILTER_DIR;
+		sourceDirectory = config.SOURCE_DATA_DIR;
 		cluster = CassandraCluster.getInstance();
 		config = SpiderConfig.getInstance();
+		this.docID = docID;
 	}
 	
 	public void service(){
 		File dir = new File(sourceDirectory);
 		File[] files = dir.listFiles();
 		if(files == null || files.length == 0) return;
-		int docID = 0;
 		initDatabase();
-		for(File file : files){
-			if(file.isDirectory()){
-				continue;
+		try {
+			for(File file : files){
+				if(file.isDirectory()){
+					continue;
+				}
+				if(file.length() > 20480){
+					logger.info("drop file {} ",file.getName());
+					continue;
+				}
+				if(parseFile(file,docID)){
+					docID++;
+				}
+				logger.info("handle {}",file.getName());
 			}
-			if(parseFile(file,docID)){
-				docID++;
-			}
+		} catch (Exception e) {
+			logger.error("FileParser file error");
+		} finally{
+			logger.info("FileParser exit with id {}",docID);
 		}
+
 	}
 	
 	public void shutdown(){
@@ -164,14 +177,18 @@ public class FileParser {
 			if(count == 0){
 				break;
 			}
-			cluster.InsertSentence(config.cassandra_keyspace_sentence, "s_"+docID, line, ByteBuffer.wrap(Gzip.compress(builder.toString())));
-			logger.info("cassnandra insert into {}.{} line {}, content {}",config.cassandra_keyspace_sentence, "s_"+docID, line,builder.toString());
+			try {
+				cluster.InsertSentence(config.cassandra_keyspace_sentence, "s_"+docID, line, ByteBuffer.wrap(Gzip.compress(builder.toString())));
+			} catch (Exception e) {
+				logger.error("cassnandra insert into {}.{} line {}, content {} fail",config.cassandra_keyspace_sentence, "s_"+docID, line,builder.toString(),e);
+			}
+			logger.debug("cassnandra insert into {}.{} line {}, content {}",config.cassandra_keyspace_sentence, "s_"+docID, line,builder.toString());
 			line++;
 		}
 		for(Entry<String, Pair<Integer, Double>> entry : wordInfo.entrySet()) {
 			Object word = entry.getKey();
 			Object valPair = entry.getValue();
-			wordInfo.get(valPair).right = wordInfo.get(valPair).right / len;
+			wordInfo.get(word).right = wordInfo.get(word).right / len;
 		}
 		return wordInfo;
 	}
@@ -184,8 +201,13 @@ public class FileParser {
 			if(!cluster.checkCf(config.cassandra_keyspace_word, word)){
 				cluster.createWordCf(config.cassandra_keyspace_word, word);
 			}
-		    cluster.InsertWord(config.cassandra_keyspace_word, word, docID, entry.getValue().right, entry.getValue().left,file,title);
-		    logger.info("cassandra insert into {}.{} docID {}, weight {} line {}",config.cassandra_keyspace_word, word, docID, entry.getValue().right, entry.getValue().left);
+			try {
+			    cluster.InsertWord(config.cassandra_keyspace_word, word, docID, entry.getValue().right, entry.getValue().left,file,title);
+			} catch (Exception e) {
+				logger.error("cassandra insert into {}.{}  fail docID {}, weight {} line {}",config.cassandra_keyspace_word, word, docID, entry.getValue().right, entry.getValue().left,e);
+				continue;
+			}
+		    logger.debug("cassandra insert into {}.{} docID {}, weight {} line {}",config.cassandra_keyspace_word, word, docID, entry.getValue().right, entry.getValue().left);
 		}  
 		
 	}
@@ -196,9 +218,10 @@ public class FileParser {
 	}
 	
 	public static void main(String[] args) {
-		FileParser test = new FileParser();
-		test.parseFile(new File("Halo~_The_Flood_6866.html"), 0);
-		test.parseFile(new File("Halo~_The_Fall_of_Reach_24f4.html"), 1);
+		FileParser test = new FileParser(0);
+//		test.parseFile(new File("Halo~_The_Flood_6866.html"), 0);
+//		test.parseFile(new File("Halo~_The_Fall_of_Reach_24f4.html"), 1);
+		test.service();
 		test.shutdown();
 	}
 

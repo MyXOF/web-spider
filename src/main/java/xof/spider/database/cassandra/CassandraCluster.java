@@ -153,6 +153,9 @@ public class CassandraCluster {
 	}
 	
 	public ResultSet InsertWord(String ks,String cf,int docID,double weight,int line,ByteBuffer file,ByteBuffer title){
+		if(!checkCf(ks, cf)){
+			createWordCf(ks, cf);
+		}
 		Statement statement = QueryBuilder.insertInto(ks, cf).value("DocID", docID).value("Weight", weight).value("Line", line).value("File", file).value("Title", title);
 		ResultSet rSet = session.execute(statement);
 		return rSet;
@@ -165,6 +168,9 @@ public class CassandraCluster {
 //	}
 	
 	public ResultSet InsertSentence(String ks,String cf,int line,ByteBuffer content){
+		if(!checkCf(ks, cf)){
+			createSentenceCf(ks, cf);
+		}
 		Statement statement = QueryBuilder.insertInto(ks, cf).value("Line", line).value("Content", content);
 		ResultSet rSet = session.execute(statement);
 		return rSet;

@@ -145,6 +145,6 @@
 		<appender-ref ref="FILEWARN" />
 		<appender-ref ref="FILEERROR" />
 		<!-- 生产环境将请stdout去掉 -->
-<!--  		<appender-ref ref="stdout" />
- -->	</root>
+  		<appender-ref ref="stdout" />
+	</root>
 </configuration>
